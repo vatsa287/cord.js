@@ -12,6 +12,9 @@ import {
 import { AssetTypeOf, IAssetProperties } from "./utils/asset-types.js";
 */
 import { createDid } from "./utils/generateDid";
+import { AssetStatusOf, AssetTypeOf } from '../../packages/types/src/Asset';
+import { uriToIdentifier } from '../../packages/identifier/src/Identifier';
+import * as Did from '@cord.network/did';
 
 const { NETWORK_ADDRESS, ANCHOR_URI } = process.env;
 
@@ -190,6 +193,23 @@ async function main() {
     )
 
   console.log("✅ Asset transferred!");
+
+  // Step 5: Change status of Asset
+  console.log(`\n❄️  Change status of Asset from 'Active' to 'Inactive' Action`);
+  
+  const statusChangeExtrinsic = await Cord.Asset.dispatchAssetStatusChangeToChain(
+      assetEntry.uri,
+      issuerDid.uri,
+      networkAuthorityIdentity,
+      Cord.AssetStatusOf.inactive,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+      }),
+      //assetIssuance.uri
+    )
+
+  console.log("✅ Asset status changed!");
 }
 main()
   .then(() => console.log("\nBye! 👋 👋 👋 "))

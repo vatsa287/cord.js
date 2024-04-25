@@ -358,6 +358,7 @@ export async function buildFromRatingProperties(
       rating.entryDigest,
       rating.entry.entityId,
       rating.entry.providerDid,
+      rating.entry.ratingType,
     ])
     validateHexString(rating.entryDigest)
 
@@ -432,6 +433,7 @@ export async function buildFromRevokeRatingProperties(
       authorUri,
       rating.entry.messageId,
       rating.entry.entryDigest,
+
     ])
     validateHexString(rating.entry.entryDigest)
 
@@ -500,6 +502,7 @@ export async function buildFromReviseRatingProperties(
       rating.referenceId,
       rating.entry.countOfTxn,
       rating.entry.totalEncodedRating,
+      rating.entry.ratingType,
     ])
 
     validateHexString(rating.entryDigest)

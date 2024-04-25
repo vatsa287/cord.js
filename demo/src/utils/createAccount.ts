@@ -1,4 +1,5 @@
 import * as Cord from "@cord.network/sdk";
+import { CordKeyringPair, ICordKeyPair } from '@cord.network/types';
 
 /**
  * `createAccount` creates a new account from a mnemonic
@@ -7,14 +8,15 @@ import * as Cord from "@cord.network/sdk";
  * @returns An object with two properties: account and mnemonic.
  */
 export function createAccount(
-  mnemonic = Cord.Utils.Crypto.mnemonicGenerate(24)
+  mnemonic: string = Cord.Utils.Crypto.mnemonicGenerate(24),
+  keytype: string = 'ed25519'
 ): {
   account: Cord.CordKeyringPair;
   mnemonic: string;
 } {
   const keyring = new Cord.Utils.Keyring({
     ss58Format: 29,
-    type: "ed25519",
+    type: keytype,
   });
   return {
     account: keyring.addFromMnemonic(mnemonic) as Cord.CordKeyringPair,

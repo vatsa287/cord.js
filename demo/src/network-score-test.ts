@@ -138,7 +138,7 @@ async function main() {
   let ratingContent: Cord.IRatingContent = {
     entityId: Cord.Utils.UUID.generate(),
     providerId: Cord.Utils.UUID.generate(),
-    ratingType: Cord.RatingTypeOf.overall,
+    ratingType: Cord.RatingTypeOf.delivery,
     countOfTxn: 100,
     totalRating: 320,
   }
@@ -340,7 +340,7 @@ async function main() {
   const aggregateScoreFromChain =
     await Cord.Score.fetchEntityAggregateScorefromChain(
       ratingContent.entityId,
-      Cord.RatingTypeOf.overall
+      //Cord.RatingTypeOf.invalid
     )
   console.dir(aggregateScoreFromChain, {
     depth: null,
