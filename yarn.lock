@@ -1600,21 +1600,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@cord.network/asset@workspace:*, @cord.network/asset@workspace:packages/asset":
-  version: 0.0.0-use.local
-  resolution: "@cord.network/asset@workspace:packages/asset"
-  dependencies:
-    "@cord.network/config": "workspace:*"
-    "@cord.network/did": "workspace:*"
-    "@cord.network/identifier": "workspace:*"
-    "@cord.network/network": "workspace:*"
-    "@cord.network/types": "workspace:*"
-    "@cord.network/utils": "workspace:*"
-    rimraf: "npm:^5.0.5"
-    typescript: "npm:^5.3.3"
-  languageName: unknown
-  linkType: soft
-
 "@cord.network/augment-api@workspace:*, @cord.network/augment-api@workspace:packages/augment-api":
   version: 0.0.0-use.local
   resolution: "@cord.network/augment-api@workspace:packages/augment-api"
@@ -1746,7 +1731,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@cord.network/sdk@workspace:packages/sdk"
   dependencies:
-    "@cord.network/asset": "workspace:*"
     "@cord.network/chain-space": "workspace:*"
     "@cord.network/config": "workspace:*"
     "@cord.network/did": "workspace:*"
@@ -1755,6 +1739,7 @@ __metadata:
     "@cord.network/network-score": "workspace:*"
     "@cord.network/schema": "workspace:*"
     "@cord.network/statement": "workspace:*"
+    "@cord.network/store": "workspace:*"
     "@cord.network/types": "workspace:*"
     "@cord.network/utils": "workspace:*"
     rimraf: "npm:^5.0.5"
@@ -1768,6 +1753,21 @@ __metadata:
 "@cord.network/statement@workspace:*, @cord.network/statement@workspace:packages/statement":
   version: 0.0.0-use.local
   resolution: "@cord.network/statement@workspace:packages/statement"
+  dependencies:
+    "@cord.network/config": "workspace:*"
+    "@cord.network/did": "workspace:*"
+    "@cord.network/identifier": "workspace:*"
+    "@cord.network/network": "workspace:*"
+    "@cord.network/types": "workspace:*"
+    "@cord.network/utils": "workspace:*"
+    rimraf: "npm:^5.0.5"
+    typescript: "npm:^5.3.3"
+  languageName: unknown
+  linkType: soft
+
+"@cord.network/store@workspace:*, @cord.network/store@workspace:packages/store":
+  version: 0.0.0-use.local
+  resolution: "@cord.network/store@workspace:packages/store"
   dependencies:
     "@cord.network/config": "workspace:*"
     "@cord.network/did": "workspace:*"
