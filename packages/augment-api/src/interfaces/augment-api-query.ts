@@ -726,6 +726,12 @@ declare module '@polkadot/api-base/types/storage' {
        **/
       revocationList: AugmentedQuery<ApiType, (arg1: Bytes | string | Uint8Array, arg2: H256 | string | Uint8Array) => Observable<Option<PalletStatementStatementEntryStatus>>, [Bytes, H256]>;
       /**
+       * Storage for Selective Data Digests.
+       * It maps from a statement identifier and,
+       * custom Selective Data Key with Selective Data Value present as digest.
+       **/
+      selectiveDataDigestEntries: AugmentedQuery<ApiType, (arg1: Bytes | string | Uint8Array, arg2: Bytes | string | Uint8Array) => Observable<Option<H256>>, [Bytes, Bytes]>;
+      /**
        * statement identifiers stored on chain.
        * It maps from an identifier to its details.
        * Only stores the latest state.

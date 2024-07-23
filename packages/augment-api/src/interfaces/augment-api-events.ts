@@ -935,7 +935,7 @@ declare module '@polkadot/api-base/types/events' {
       /**
        * A statement batch has been processed.
        * \[successful count, failed count, failed indices,
-       * controller]
+       * controller\]
        **/
       RegisterBatch: AugmentedEvent<ApiType, [successful: u32, failed: u32, indices: Vec<u16>, author: AccountId32], { successful: u32, failed: u32, indices: Vec<u16>, author: AccountId32 }>;
       /**
@@ -953,6 +953,16 @@ declare module '@polkadot/api-base/types/events' {
        * \[statement identifier, controller\]
        **/
       Revoke: AugmentedEvent<ApiType, [identifier: Bytes, author: AccountId32], { identifier: Bytes, author: AccountId32 }>;
+      /**
+       * A statement selective data has been removed.
+       * \[identifier, controller\]
+       **/
+      SelectiveDataRemoved: AugmentedEvent<ApiType, [identifier: Bytes, author: AccountId32], { identifier: Bytes, author: AccountId32 }>;
+      /**
+       * A statement selective data has been updated.
+       * \[identifier, controller\]
+       **/
+      SelectiveDataUpdated: AugmentedEvent<ApiType, [identifier: Bytes, author: AccountId32], { identifier: Bytes, author: AccountId32 }>;
       /**
        * A statement identifier has been updated.
        * \[statement identifier, digest, controller\]

@@ -456,6 +456,14 @@ declare module '@polkadot/api-base/types/consts' {
        * Maximum removals per call
        **/
       maxRemoveEntries: u16 & AugmentedConst<ApiType>;
+      /**
+       * Maximum selective data entries
+       **/
+      maxSelectiveDataEntries: u32 & AugmentedConst<ApiType>;
+      /**
+       * Maximum selective data key length
+       **/
+      maxSelectiveDataKeyLength: u32 & AugmentedConst<ApiType>;
     };
     system: {
       /**

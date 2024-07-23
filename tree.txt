@@ -1,0 +1,682 @@
+.
+├── asset
+│   ├── lib
+│   │   └── cjs
+│   │       ├── Asset.chain.d.ts
+│   │       ├── Asset.chain.js
+│   │       ├── Asset.d.ts
+│   │       ├── Asset.js
+│   │       ├── index.d.ts
+│   │       └── index.js
+│   ├── package.json
+│   ├── src
+│   │   ├── Asset.chain.ts
+│   │   ├── Asset.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── augment-api
+│   ├── README.md
+│   ├── extraDefs
+│   │   └── package.json
+│   ├── index.cjs
+│   ├── index.mjs
+│   ├── lib
+│   │   ├── index.d.ts
+│   │   ├── interfaces
+│   │   │   ├── augment-api-consts.d.ts
+│   │   │   ├── augment-api-errors.d.ts
+│   │   │   ├── augment-api-events.d.ts
+│   │   │   ├── augment-api-query.d.ts
+│   │   │   ├── augment-api-rpc.d.ts
+│   │   │   ├── augment-api-runtime.d.ts
+│   │   │   ├── augment-api-tx.d.ts
+│   │   │   ├── augment-api.d.ts
+│   │   │   ├── augment-types.d.ts
+│   │   │   ├── extraDefs
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── types.d.ts
+│   │   │   ├── index.d.ts
+│   │   │   ├── lookup.d.ts
+│   │   │   ├── registry.d.ts
+│   │   │   ├── types-lookup.d.ts
+│   │   │   └── types.d.ts
+│   │   └── types.d.ts
+│   ├── metadata
+│   │   └── cord.json
+│   ├── package.json
+│   ├── scripts
+│   │   ├── fetchMetadata.cjs
+│   │   └── fixTypes.mjs
+│   ├── src
+│   │   ├── index.ts
+│   │   ├── interfaces
+│   │   │   ├── augment-api-consts.ts
+│   │   │   ├── augment-api-errors.ts
+│   │   │   ├── augment-api-events.ts
+│   │   │   ├── augment-api-query.ts
+│   │   │   ├── augment-api-rpc.ts
+│   │   │   ├── augment-api-runtime.ts
+│   │   │   ├── augment-api-tx.ts
+│   │   │   ├── augment-api.ts
+│   │   │   ├── augment-types.ts
+│   │   │   ├── definitions.ts
+│   │   │   ├── extraDefs
+│   │   │   │   ├── definitions.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   └── types.ts
+│   │   │   ├── index.ts
+│   │   │   ├── lookup.ts
+│   │   │   ├── registry.ts
+│   │   │   ├── types-lookup.ts
+│   │   │   └── types.ts
+│   │   └── types.ts
+│   └── tsconfig.build.json
+├── chain-space
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── ChainSpace.chain.d.ts
+│   │   │   ├── ChainSpace.chain.js
+│   │   │   ├── ChainSpace.d.ts
+│   │   │   ├── ChainSpace.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── ChainSpace.chain.d.ts
+│   │       ├── ChainSpace.chain.js
+│   │       ├── ChainSpace.d.ts
+│   │       ├── ChainSpace.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── ChainSpace.chain.ts
+│   │   ├── ChainSpace.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── config
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── Config.d.ts
+│   │   ├── Config.js
+│   │   ├── Service.d.ts
+│   │   ├── Service.js
+│   │   ├── index.d.ts
+│   │   ├── index.js
+│   │   └── index.mjs
+│   ├── package.json
+│   ├── src
+│   │   ├── Config.ts
+│   │   ├── Service.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── did
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Did.chain.d.ts
+│   │   │   ├── Did.chain.js
+│   │   │   ├── Did.rpc.d.ts
+│   │   │   ├── Did.rpc.js
+│   │   │   ├── Did.signature.d.ts
+│   │   │   ├── Did.signature.js
+│   │   │   ├── Did.utils.d.ts
+│   │   │   ├── Did.utils.js
+│   │   │   ├── DidDetails
+│   │   │   │   ├── DidDetails.d.ts
+│   │   │   │   ├── DidDetails.js
+│   │   │   │   ├── FullDidDetails.d.ts
+│   │   │   │   ├── FullDidDetails.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── DidDocumentExporter
+│   │   │   │   ├── DidContexts.d.ts
+│   │   │   │   ├── DidContexts.js
+│   │   │   │   ├── DidDocumentExporter.d.ts
+│   │   │   │   ├── DidDocumentExporter.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── DidResolver
+│   │   │   │   ├── DidResolver.d.ts
+│   │   │   │   ├── DidResolver.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── Did.chain.d.ts
+│   │       ├── Did.chain.js
+│   │       ├── Did.rpc.d.ts
+│   │       ├── Did.rpc.js
+│   │       ├── Did.signature.d.ts
+│   │       ├── Did.signature.js
+│   │       ├── Did.utils.d.ts
+│   │       ├── Did.utils.js
+│   │       ├── DidDetails
+│   │       │   ├── DidDetails.d.ts
+│   │       │   ├── DidDetails.js
+│   │       │   ├── FullDidDetails.d.ts
+│   │       │   ├── FullDidDetails.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── DidDocumentExporter
+│   │       │   ├── DidContexts.d.ts
+│   │       │   ├── DidContexts.js
+│   │       │   ├── DidDocumentExporter.d.ts
+│   │       │   ├── DidDocumentExporter.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── DidResolver
+│   │       │   ├── DidResolver.d.ts
+│   │       │   ├── DidResolver.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── Did.chain.ts
+│   │   ├── Did.rpc.ts
+│   │   ├── Did.signature.ts
+│   │   ├── Did.utils.ts
+│   │   ├── DidDetails
+│   │   │   ├── DidDetails.ts
+│   │   │   ├── FullDidDetails.ts
+│   │   │   └── index.ts
+│   │   ├── DidDocumentExporter
+│   │   │   ├── DidContexts.ts
+│   │   │   ├── DidDocumentExporter.ts
+│   │   │   ├── README.md
+│   │   │   └── index.ts
+│   │   ├── DidResolver
+│   │   │   ├── DidResolver.ts
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── identifier
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Identifier.d.ts
+│   │   │   ├── Identifier.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── Identifier.d.ts
+│   │       ├── Identifier.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── Identifier.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── network
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── chain
+│   │   │   │   ├── Chain.d.ts
+│   │   │   │   ├── Chain.js
+│   │   │   │   ├── SubscriptionPromise.d.ts
+│   │   │   │   ├── SubscriptionPromise.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── errorhandling
+│   │   │   │   ├── ErrorHandler.d.ts
+│   │   │   │   ├── ErrorHandler.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── chain
+│   │       │   ├── Chain.d.ts
+│   │       │   ├── Chain.js
+│   │       │   ├── SubscriptionPromise.d.ts
+│   │       │   ├── SubscriptionPromise.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── errorhandling
+│   │       │   ├── ErrorHandler.d.ts
+│   │       │   ├── ErrorHandler.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── chain
+│   │   │   ├── Chain.ts
+│   │   │   ├── SubscriptionPromise.ts
+│   │   │   └── index.ts
+│   │   ├── errorhandling
+│   │   │   ├── ErrorHandler.spec.ts
+│   │   │   ├── ErrorHandler.ts
+│   │   │   └── index.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── network-score
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Scoring.chain.d.ts
+│   │   │   ├── Scoring.chain.js
+│   │   │   ├── Scoring.d.ts
+│   │   │   ├── Scoring.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── Scoring.chain.d.ts
+│   │       ├── Scoring.chain.js
+│   │       ├── Scoring.d.ts
+│   │       ├── Scoring.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── Scoring.chain.ts
+│   │   ├── Scoring.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── schema
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Schema.chain.d.ts
+│   │   │   ├── Schema.chain.js
+│   │   │   ├── Schema.d.ts
+│   │   │   ├── Schema.js
+│   │   │   ├── Schema.types.d.ts
+│   │   │   ├── Schema.types.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── Schema.chain.d.ts
+│   │       ├── Schema.chain.js
+│   │       ├── Schema.d.ts
+│   │       ├── Schema.js
+│   │       ├── Schema.types.d.ts
+│   │       ├── Schema.types.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── Schema.chain.ts
+│   │   ├── Schema.ts
+│   │   ├── Schema.types.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── sdk
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   ├── tsconfig.esm.json
+│   └── webpack.config.js
+├── statement
+│   ├── LICENSE
+│   ├── lib
+│   │   └── cjs
+│   │       ├── Statement.chain.d.ts
+│   │       ├── Statement.chain.js
+│   │       ├── Statement.d.ts
+│   │       ├── Statement.js
+│   │       ├── index.d.ts
+│   │       └── index.js
+│   ├── package.json
+│   ├── src
+│   │   ├── Statement.chain.ts
+│   │   ├── Statement.ts
+│   │   └── index.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── store
+│   └── lib
+│       ├── cjs
+│       │   ├── Store.chain.d.ts
+│       │   ├── Store.chain.js
+│       │   ├── Store.d.ts
+│       │   ├── Store.js
+│       │   ├── index.d.ts
+│       │   ├── index.js
+│       │   └── package.json
+│       └── esm
+│           ├── Store.chain.d.ts
+│           ├── Store.chain.js
+│           ├── Store.d.ts
+│           ├── Store.js
+│           ├── index.d.ts
+│           ├── index.js
+│           └── package.json
+├── type-definitions
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── mergeType.d.ts
+│   │   │   ├── mergeType.js
+│   │   │   ├── package.json
+│   │   │   ├── runtime
+│   │   │   │   ├── did.d.ts
+│   │   │   │   ├── did.js
+│   │   │   │   ├── weight.d.ts
+│   │   │   │   └── weight.js
+│   │   │   ├── signedExtensions
+│   │   │   │   ├── emptyCheck.d.ts
+│   │   │   │   ├── emptyCheck.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   └── index.js
+│   │   │   ├── types_7.d.ts
+│   │   │   ├── types_7.js
+│   │   │   ├── types_8.d.ts
+│   │   │   ├── types_8.js
+│   │   │   ├── types_9.d.ts
+│   │   │   └── types_9.js
+│   │   └── esm
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       ├── mergeType.d.ts
+│   │       ├── mergeType.js
+│   │       ├── package.json
+│   │       ├── runtime
+│   │       │   ├── did.d.ts
+│   │       │   ├── did.js
+│   │       │   ├── weight.d.ts
+│   │       │   └── weight.js
+│   │       ├── signedExtensions
+│   │       │   ├── emptyCheck.d.ts
+│   │       │   ├── emptyCheck.js
+│   │       │   ├── index.d.ts
+│   │       │   └── index.js
+│   │       ├── types_7.d.ts
+│   │       ├── types_7.js
+│   │       ├── types_8.d.ts
+│   │       ├── types_8.js
+│   │       ├── types_9.d.ts
+│   │       └── types_9.js
+│   ├── package.json
+│   ├── src
+│   │   ├── index.ts
+│   │   ├── mergeType.ts
+│   │   ├── runtime
+│   │   │   ├── did.ts
+│   │   │   └── weight.ts
+│   │   ├── signedExtensions
+│   │   │   ├── emptyCheck.ts
+│   │   │   └── index.ts
+│   │   ├── types_7.ts
+│   │   ├── types_8.ts
+│   │   └── types_9.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── types
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Address.d.ts
+│   │   │   ├── Address.js
+│   │   │   ├── Asset.d.ts
+│   │   │   ├── Asset.js
+│   │   │   ├── Balance.d.ts
+│   │   │   ├── Balance.js
+│   │   │   ├── ChainSpace.d.ts
+│   │   │   ├── ChainSpace.js
+│   │   │   ├── CryptoCallbacks.d.ts
+│   │   │   ├── CryptoCallbacks.js
+│   │   │   ├── DidDocument.d.ts
+│   │   │   ├── DidDocument.js
+│   │   │   ├── DidDocumentExporter.d.ts
+│   │   │   ├── DidDocumentExporter.js
+│   │   │   ├── DidResolver.d.ts
+│   │   │   ├── DidResolver.js
+│   │   │   ├── Identity.d.ts
+│   │   │   ├── Identity.js
+│   │   │   ├── Imported.d.ts
+│   │   │   ├── Imported.js
+│   │   │   ├── Keys.d.ts
+│   │   │   ├── Keys.js
+│   │   │   ├── PublicIdentity.d.ts
+│   │   │   ├── PublicIdentity.js
+│   │   │   ├── Schema.d.ts
+│   │   │   ├── Schema.js
+│   │   │   ├── SchemaMetadata.d.ts
+│   │   │   ├── SchemaMetadata.js
+│   │   │   ├── Score.d.ts
+│   │   │   ├── Score.js
+│   │   │   ├── Statement.d.ts
+│   │   │   ├── Statement.js
+│   │   │   ├── SubscriptionPromise.d.ts
+│   │   │   ├── SubscriptionPromise.js
+│   │   │   ├── Weight.d.ts
+│   │   │   ├── Weight.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── meta.d.ts
+│   │   │   ├── meta.js
+│   │   │   └── package.json
+│   │   └── esm
+│   │       ├── Address.d.ts
+│   │       ├── Address.js
+│   │       ├── Asset.d.ts
+│   │       ├── Asset.js
+│   │       ├── Balance.d.ts
+│   │       ├── Balance.js
+│   │       ├── ChainSpace.d.ts
+│   │       ├── ChainSpace.js
+│   │       ├── CryptoCallbacks.d.ts
+│   │       ├── CryptoCallbacks.js
+│   │       ├── DidDocument.d.ts
+│   │       ├── DidDocument.js
+│   │       ├── DidDocumentExporter.d.ts
+│   │       ├── DidDocumentExporter.js
+│   │       ├── DidResolver.d.ts
+│   │       ├── DidResolver.js
+│   │       ├── Identity.d.ts
+│   │       ├── Identity.js
+│   │       ├── Imported.d.ts
+│   │       ├── Imported.js
+│   │       ├── Keys.d.ts
+│   │       ├── Keys.js
+│   │       ├── PublicIdentity.d.ts
+│   │       ├── PublicIdentity.js
+│   │       ├── Schema.d.ts
+│   │       ├── Schema.js
+│   │       ├── SchemaMetadata.d.ts
+│   │       ├── SchemaMetadata.js
+│   │       ├── Score.d.ts
+│   │       ├── Score.js
+│   │       ├── Statement.d.ts
+│   │       ├── Statement.js
+│   │       ├── SubscriptionPromise.d.ts
+│   │       ├── SubscriptionPromise.js
+│   │       ├── Weight.d.ts
+│   │       ├── Weight.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       ├── meta.d.ts
+│   │       ├── meta.js
+│   │       └── package.json
+│   ├── package.json
+│   ├── src
+│   │   ├── Address.ts
+│   │   ├── Asset.ts
+│   │   ├── Balance.ts
+│   │   ├── ChainSpace.ts
+│   │   ├── CryptoCallbacks.ts
+│   │   ├── DidDocument.ts
+│   │   ├── DidDocumentExporter.ts
+│   │   ├── DidResolver.ts
+│   │   ├── Identity.ts
+│   │   ├── Imported.ts
+│   │   ├── Keys.ts
+│   │   ├── PublicIdentity.ts
+│   │   ├── Schema.ts
+│   │   ├── SchemaMetadata.ts
+│   │   ├── Score.ts
+│   │   ├── Statement.ts
+│   │   ├── SubscriptionPromise.ts
+│   │   ├── Weight.ts
+│   │   ├── index.ts
+│   │   └── meta.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+├── utils
+│   ├── LICENSE
+│   ├── lib
+│   │   ├── cjs
+│   │   │   ├── Balance.d.ts
+│   │   │   ├── Balance.js
+│   │   │   ├── Crypto.d.ts
+│   │   │   ├── Crypto.js
+│   │   │   ├── DataUtils.d.ts
+│   │   │   ├── DataUtils.js
+│   │   │   ├── Decode.d.ts
+│   │   │   ├── Decode.js
+│   │   │   ├── Keys.d.ts
+│   │   │   ├── Keys.js
+│   │   │   ├── SDKErrors.d.ts
+│   │   │   ├── SDKErrors.js
+│   │   │   ├── UUID.d.ts
+│   │   │   ├── UUID.js
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── json-schema
+│   │   │   │   ├── deep-compare-strict.d.ts
+│   │   │   │   ├── deep-compare-strict.js
+│   │   │   │   ├── dereference.d.ts
+│   │   │   │   ├── dereference.js
+│   │   │   │   ├── format.d.ts
+│   │   │   │   ├── format.js
+│   │   │   │   ├── index.d.ts
+│   │   │   │   ├── index.js
+│   │   │   │   ├── pointer.d.ts
+│   │   │   │   ├── pointer.js
+│   │   │   │   ├── types.d.ts
+│   │   │   │   ├── types.js
+│   │   │   │   ├── ucs2-length.d.ts
+│   │   │   │   ├── ucs2-length.js
+│   │   │   │   ├── validate.d.ts
+│   │   │   │   ├── validate.js
+│   │   │   │   ├── validator.d.ts
+│   │   │   │   └── validator.js
+│   │   │   ├── jsonabc.d.ts
+│   │   │   ├── jsonabc.js
+│   │   │   ├── package.json
+│   │   │   ├── ss58Format.d.ts
+│   │   │   └── ss58Format.js
+│   │   └── esm
+│   │       ├── Balance.d.ts
+│   │       ├── Balance.js
+│   │       ├── Crypto.d.ts
+│   │       ├── Crypto.js
+│   │       ├── DataUtils.d.ts
+│   │       ├── DataUtils.js
+│   │       ├── Decode.d.ts
+│   │       ├── Decode.js
+│   │       ├── Keys.d.ts
+│   │       ├── Keys.js
+│   │       ├── SDKErrors.d.ts
+│   │       ├── SDKErrors.js
+│   │       ├── UUID.d.ts
+│   │       ├── UUID.js
+│   │       ├── index.d.ts
+│   │       ├── index.js
+│   │       ├── json-schema
+│   │       │   ├── deep-compare-strict.d.ts
+│   │       │   ├── deep-compare-strict.js
+│   │       │   ├── dereference.d.ts
+│   │       │   ├── dereference.js
+│   │       │   ├── format.d.ts
+│   │       │   ├── format.js
+│   │       │   ├── index.d.ts
+│   │       │   ├── index.js
+│   │       │   ├── pointer.d.ts
+│   │       │   ├── pointer.js
+│   │       │   ├── types.d.ts
+│   │       │   ├── types.js
+│   │       │   ├── ucs2-length.d.ts
+│   │       │   ├── ucs2-length.js
+│   │       │   ├── validate.d.ts
+│   │       │   ├── validate.js
+│   │       │   ├── validator.d.ts
+│   │       │   └── validator.js
+│   │       ├── jsonabc.d.ts
+│   │       ├── jsonabc.js
+│   │       ├── package.json
+│   │       ├── ss58Format.d.ts
+│   │       └── ss58Format.js
+│   ├── package.json
+│   ├── src
+│   │   ├── Balance.ts
+│   │   ├── Crypto.ts
+│   │   ├── DataUtils.ts
+│   │   ├── Decode.ts
+│   │   ├── Keys.ts
+│   │   ├── SDKErrors.ts
+│   │   ├── UUID.ts
+│   │   ├── index.ts
+│   │   ├── json-schema
+│   │   │   ├── README.md
+│   │   │   ├── deep-compare-strict.ts
+│   │   │   ├── dereference.ts
+│   │   │   ├── format.ts
+│   │   │   ├── index.ts
+│   │   │   ├── pointer.ts
+│   │   │   ├── types.ts
+│   │   │   ├── ucs2-length.ts
+│   │   │   ├── validate.ts
+│   │   │   └── validator.ts
+│   │   ├── jsonabc.ts
+│   │   └── ss58Format.ts
+│   ├── tsconfig.build.json
+│   └── tsconfig.esm.json
+└── witness
+    └── lib
+        ├── cjs
+        │   ├── Witness.chain.d.ts
+        │   ├── Witness.chain.js
+        │   ├── Witness.d.ts
+        │   ├── Witness.js
+        │   ├── index.d.ts
+        │   ├── index.js
+        │   └── package.json
+        └── esm
+            ├── Witness.chain.d.ts
+            ├── Witness.chain.js
+            ├── Witness.d.ts
+            ├── Witness.js
+            ├── index.d.ts
+            ├── index.js
+            └── package.json
+
+104 directories, 576 files

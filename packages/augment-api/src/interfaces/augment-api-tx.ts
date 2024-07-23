@@ -3151,6 +3151,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `digest`: The digest of the statement, serving as a unique identifier.
        * - `authorization`: The authorization ID, verifying the creator's delegation status.
        * - `schema_id`: An optional schema identifier to be associated with the statement.
+       * - `selective_data`: An optional selective data which consists of custom key-pairs.
        * 
        * # Returns
        * A `DispatchResult` indicating the success or failure of the
@@ -3168,7 +3169,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `Create`: Emitted when a statement is successfully created, containing the
        * `identifier`, `digest`, and `author` (creator).
        **/
-      register: AugmentedSubmittable<(digest: H256 | string | Uint8Array, authorization: Bytes | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string) => SubmittableExtrinsic<ApiType>, [H256, Bytes, Option<Bytes>]>;
+      register: AugmentedSubmittable<(digest: H256 | string | Uint8Array, authorization: Bytes | string | Uint8Array, schemaId: Option<Bytes> | null | Uint8Array | Bytes | string, selectiveData: Option<Vec<ITuple<[Bytes, H256]>>> | null | Uint8Array | Vec<ITuple<[Bytes, H256]>> | ([Bytes | string | Uint8Array, H256 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [H256, Bytes, Option<Bytes>, Option<Vec<ITuple<[Bytes, H256]>>>]>;
       /**
        * Creates multiple statements in a batch operation. This function
        * takes a vector of statement digests and attempts to create a new
@@ -3298,6 +3299,38 @@ declare module '@polkadot/api-base/types/submittable' {
        * - Emits `PresentationRemoved` upon the successful removal of the presentation.
        **/
       removePresentation: AugmentedSubmittable<(statementId: Bytes | string | Uint8Array, presentationDigest: H256 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Bytes]>;
+      /**
+       * Removes the selective data for a particular statement identifier
+       * 
+       * This funciton allows for removal of selective data for the given
+       * `statement_id`. The function validates the `authorization` of the caller
+       * within the chain space before proceeding with the removal.
+       * The function takes optional parameter `remove_all` & `keys_to_remove`,
+       * which allows to remove all valid existing selective data keys and list of valid
+       * valid existing selective data keys respectively.
+       * Important to note is both should be used interchangeably.
+       * Meaning only one f
+       * 
+       * # Parameters
+       * - `origin`: The origin of the dispatch call, which should be a signed message from the
+       * creator.
+       * - `statement_id`: The identifier of the statement associated with the selective data.
+       * - `authorization`: The authorization identifier that the updater must have to perform
+       * the updation.
+       * 
+       * # Errors
+       * - Returns `StatementNotFound` if the `statement_id` does not correspond to any existing
+       * statement.
+       * - Returns `UnauthorizedOperation` if the operation is not authorized within the
+       * associated space.
+       * - Returns `SelectiveDataNotFound` if the selective data digest entry does not exist on
+       * chain.
+       * - Returns `SelectiveDataKeyNotFound` if the selective data key is invalid
+       * 
+       * # Events
+       * - Emits `SelectiveDataRemoved` upon the successful removal of the presentation.
+       **/
+      removeSelectiveData: AugmentedSubmittable<(statementId: Bytes | string | Uint8Array, removeAll: Option<bool> | null | Uint8Array | bool | boolean, keysToRemove: Option<Vec<Bytes>> | null | Uint8Array | Vec<Bytes> | (Bytes | string | Uint8Array)[], authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Option<bool>, Option<Vec<Bytes>>, Bytes]>;
       /**
        * Restores a previously revoked statement, re-enabling its validity
        * within the system. The restoration is contingent upon a set of
@@ -3432,6 +3465,7 @@ declare module '@polkadot/api-base/types/submittable' {
        * - `statement_id`: The identifier of the statement to be updated.
        * - `new_statement_digest`: The new digest to replace the existing one for the statement.
        * - `authorization`: The authorization ID, verifying the updater's delegation status.
+       * - `selective_data`: The optional new set of `selective_data` which is to be updated.
        * 
        * # Returns
        * A `DispatchResult` indicating the success or failure of the update
@@ -3449,7 +3483,32 @@ declare module '@polkadot/api-base/types/submittable' {
        * `identifier`, `digest`, and `author`
        * (updater).
        **/
-      update: AugmentedSubmittable<(statementId: Bytes | string | Uint8Array, newStatementDigest: H256 | string | Uint8Array, authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Bytes]>;
+      update: AugmentedSubmittable<(statementId: Bytes | string | Uint8Array, newStatementDigest: H256 | string | Uint8Array, authorization: Bytes | string | Uint8Array, selectiveData: Option<Vec<ITuple<[Bytes, H256]>>> | null | Uint8Array | Vec<ITuple<[Bytes, H256]>> | ([Bytes | string | Uint8Array, H256 | string | Uint8Array])[]) => SubmittableExtrinsic<ApiType>, [Bytes, H256, Bytes, Option<Vec<ITuple<[Bytes, H256]>>>]>;
+      /**
+       * Updates the selective data for a particular statement identifier
+       * 
+       * This funciton allows for updation of selective data for the given
+       * `statement_id`. The function validates the `authorization` of the caller
+       * within the chain space before proceeding with the updation.
+       * 
+       * # Parameters
+       * - `origin`: The origin of the dispatch call, which should be a signed message from the
+       * creator.
+       * - `statement_id`: The identifier of the statement associated with the selective data.
+       * - `selective_data`: The new set of `selective_data` which is to be updated.
+       * - `authorization`: The authorization identifier that the updater must have to perform
+       * the updation.
+       * 
+       * # Errors
+       * - Returns `StatementNotFound` if the `statement_id` does not correspond to any existing
+       * statement.
+       * - Returns `UnauthorizedOperation` if the operation is not authorized within the
+       * associated space.
+       * 
+       * # Events
+       * - Emits `SelectiveDataUpdated` upon the successful removal of the presentation.
+       **/
+      updateSelectiveData: AugmentedSubmittable<(statementId: Bytes | string | Uint8Array, selectiveData: Vec<ITuple<[Bytes, H256]>> | ([Bytes | string | Uint8Array, H256 | string | Uint8Array])[], authorization: Bytes | string | Uint8Array) => SubmittableExtrinsic<ApiType>, [Bytes, Vec<ITuple<[Bytes, H256]>>, Bytes]>;
     };
     sudo: {
       /**

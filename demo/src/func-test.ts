@@ -1,5 +1,6 @@
 import * as Cord from '@cord.network/sdk'
 // import { UUID, Crypto } from '@cord.network/utils'
+import { createDid } from './utils/generateDid'
 import { createDidName } from './utils/generateDidName'
 import { getDidDocFromName } from './utils/queryDidName'
 import { randomUUID } from 'crypto'
@@ -17,6 +18,14 @@ function getChallenge(): string {
   return Cord.Utils.UUID.generate()
 }
 
+import {
+  blake2AsHex,
+} from '@cord.network/types'
+
+import {
+  BN
+} from 'bn.js';
+
 async function main() {
   const networkAddress = process.env.NETWORK_ADDRESS
     ? process.env.NETWORK_ADDRESS
@@ -24,6 +33,8 @@ async function main() {
   //  const networkAddress = 'ws://127.0.0.1:9944'
   Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
   await Cord.connect(networkAddress)
+
+  const api = Cord.ConfigService.get('api');
 
   // Step 1: Setup Membership
   // Setup transaction author account - CORD Account.
@@ -42,26 +53,33 @@ async function main() {
   await setRegistrar(authorityAuthorIdentity, authorityIdentity.address)
   console.log('✅ Network Authority created!')
 
+
+
   // Setup network member account.
   const { account: authorIdentity } = await createAccount()
   console.log(`🏦  Member (${authorIdentity.type}): ${authorIdentity.address}`)
   await addNetworkMember(authorityAuthorIdentity, authorIdentity.address)
   console.log(`🔏  Member permissions updated`)
-  await setIdentity(authorIdentity)
-  console.log(`🔏  Member identity info updated`)
-  await requestJudgement(authorIdentity, authorityIdentity.address)
-  console.log(`🔏  Member identity judgement requested`)
-  await provideJudgement(authorityIdentity, authorIdentity.address)
-  console.log(`🔏  Member identity judgement provided`)
-  console.log('✅ Network Member added!')
+  // await setIdentity(authorIdentity)
+  // console.log(`🔏  Member identity info updated`)
+  // await requestJudgement(authorIdentity, authorityIdentity.address)
+  // console.log(`🔏  Member identity judgement requested`)
+  // await provideJudgement(authorityIdentity, authorIdentity.address)
+  // console.log(`🔏  Member identity judgement provided`)
+  // console.log('✅ Network Member added!')
 
   // Step 2: Setup Identities
   console.log(`\n❄️  Demo Identities (KeyRing)`)
 
+  let tx = await api.tx.balances.transferAllowDeath(authorIdentity.address, new BN('1000000000000000000'));
+
+  await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
+
+
   /* Creating the DIDs for the different parties involved in the demo. */
   // Create Verifier DID
   const { mnemonic: verifierMnemonic, document: verifierDid } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const verifierKeys = Cord.Utils.Keys.generateKeypairs(
     verifierMnemonic,
     'sr25519'
@@ -71,14 +89,14 @@ async function main() {
   )
   // Create Holder DID
   const { mnemonic: holderMnemonic, document: holderDid } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const holderKeys = Cord.Utils.Keys.generateKeypairs(holderMnemonic, 'sr25519')
   console.log(
     `👩‍⚕️  Holder (${holderDid.assertionMethod![0].type}): ${holderDid.uri}`
   )
   // Create issuer DID
   const { mnemonic: issuerMnemonic, document: issuerDid } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const issuerKeys = Cord.Utils.Keys.generateKeypairs(issuerMnemonic, 'sr25519')
   console.log(
     `🏛   Issuer (${issuerDid?.assertionMethod![0].type}): ${issuerDid.uri}`
@@ -93,7 +111,7 @@ async function main() {
   })
   // Create Delegate One DID
   const { mnemonic: delegateOneMnemonic, document: delegateOneDid } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const delegateOneKeys = Cord.Utils.Keys.generateKeypairs(
     delegateOneMnemonic,
     'sr25519'
@@ -105,7 +123,7 @@ async function main() {
   )
   // Create Delegate Two DID
   const { mnemonic: delegateTwoMnemonic, document: delegateTwoDid } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const delegateTwoKeys = Cord.Utils.Keys.generateKeypairs(
     delegateTwoMnemonic,
     'sr25519'
@@ -117,7 +135,7 @@ async function main() {
   )
   // Create Delegate 3 DID
   const { mnemonic: delegate3Mnemonic, document: delegate3Did } =
-    await Cord.Did.createDid(authorIdentity)
+    await createDid(authorIdentity)
   const delegate3Keys = Cord.Utils.Keys.generateKeypairs(
     delegate3Mnemonic,
     'sr25519'
@@ -324,6 +342,14 @@ async function main() {
     colors: true,
   })
 
+  let selectiveData: [string, string][] = [
+      ["key1", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3773"],
+      ["key2", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3779"],
+      ["key3", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3778"],
+      ["key4", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3775"],
+      ["key5", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3774"],
+    ];
+
   const statement = await Cord.Statement.dispatchRegisterToChain(
     statementEntry,
     issuerDid.uri,
@@ -332,10 +358,50 @@ async function main() {
     async ({ data }) => ({
       signature: issuerKeys.authentication.sign(data),
       keyType: issuerKeys.authentication.type,
-    })
+    }),
+    selectiveData
   )
 
   console.log(`✅ Statement element registered - ${statement}`)
+
+  selectiveData = [
+      ["key1", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3900"],
+      ["key6", "0x2f1f1b9995f6bda9ac05ebfc8926fca316194f9ad5043fe38ff2b54759cb3999"],
+  ];
+
+  // console.log(`\n❄️  Updating Selective Data - ${selectiveData}`)
+
+  // const stUri = await Cord.Statement.dispatchUpdateSelectiveDataToChain(
+  //   statementEntry.elementUri,
+  //   issuerDid.uri,
+  //   authorIdentity,
+  //   selectiveData,
+  //   space.authorization,
+  //   async ({ data }) => ({
+  //     signature: issuerKeys.authentication.sign(data),
+  //     keyType: issuerKeys.authentication.type,
+  //   })
+  // )
+
+  // console.log(`✅ Selective Data Updated`)
+
+  // console.log(`\n❄️  Removing Selective Data`)
+  
+  // let keysToRemove: string [] = ["key1", "key2"]
+  // const _stUri = await Cord.Statement.dispatchRemoveSelectiveDataToChain(
+  //   statementEntry.elementUri,
+  //   issuerDid.uri,
+  //   false,
+  //   keysToRemove,
+  //   authorIdentity,
+  //   space.authorization,
+  //   async ({ data }) => ({
+  //     signature: issuerKeys.authentication.sign(data),
+  //     keyType: issuerKeys.authentication.type,
+  //   })
+  // )
+
+  // console.log(`✅ Selective Data Key Removed`)
 
   console.log(`\n❄️  Statement Updation `)
   let updateCredContent = newCredContent
@@ -364,7 +430,8 @@ async function main() {
     async ({ data }) => ({
       signature: delegateTwoKeys.authentication.sign(data),
       keyType: delegateTwoKeys.authentication.type,
-    })
+    }),
+    selectiveData
   )
   console.log(`✅ Statement element registered - ${updatedStatement}`)
 

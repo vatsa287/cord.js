@@ -1403,6 +1403,10 @@ declare module '@polkadot/api-base/types/errors' {
        **/
       InvalidIdentifierLength: AugmentedError<ApiType>;
       /**
+       * Selective Data Removal requires one parameter activated,
+       **/
+      InvalidSelectiveDataRemoveParameters: AugmentedError<ApiType>;
+      /**
        * Invalid creator signature
        **/
       InvalidSignature: AugmentedError<ApiType>;
@@ -1439,6 +1443,18 @@ declare module '@polkadot/api-base/types/errors' {
        * Presentation not found
        **/
       PresentationNotFound: AugmentedError<ApiType>;
+      /**
+       * Selective Data Removal cannot have both optional parameter activated,
+       **/
+      SelectiveDataConflictingParameters: AugmentedError<ApiType>;
+      /**
+       * Selective data digest entry not found for the `statement_id`,
+       **/
+      SelectiveDataDigestEntryNotFound: AugmentedError<ApiType>;
+      /**
+       * Selective data key not found in the valid list of keys,
+       **/
+      SelectiveDataKeyNotFound: AugmentedError<ApiType>;
       /**
        * Statement idenfier is not unique
        **/

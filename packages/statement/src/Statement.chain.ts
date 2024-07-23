@@ -180,6 +180,7 @@ export function getUriForStatement(
  * @param authorAccount - The blockchain account used to sign and submit the transaction.
  * @param authorizationUri - The URI of the authorization used for the statement.
  * @param signCallback - A callback function that handles the signing of the transaction.
+ * @param selectiveData - Optional selective data k:v entries to be associated with a statement identifier.
  * @returns The element URI of the registered statement.
  *
  * @throws {SDKErrors.CordDispatchError} - Thrown when there is an error during the dispatch process,
@@ -209,15 +210,18 @@ export async function dispatchRegisterToChain(
   creatorUri: DidUri,
   authorAccount: CordKeyringPair,
   authorizationUri: AuthorizationUri,
-  signCallback: SignExtrinsicCallback
+  signCallback: SignExtrinsicCallback,
+  selectiveData: [string, string][] = []
 ): Promise<StatementUri> {
   try {
+
     const tx = await prepareExtrinsicToRegister(
       stmtEntry,
       creatorUri,
       authorAccount,
       authorizationUri,
-      signCallback
+      signCallback,
+      selectiveData
     )
 
     await Chain.signAndSubmitTx(tx, authorAccount)
@@ -226,6 +230,143 @@ export async function dispatchRegisterToChain(
   } catch (error) {
     throw new SDKErrors.CordDispatchError(
       `Error dispatching to chain: "${error}".`
+    )
+  }
+}
+
+
+/**
+ * Dispatches a update selective data associated with the statement transaction to the CORD blockchain.
+ *
+ * @remarks
+ * This function is used to update an existing statement selective data entry on the blockchain.
+ * It first checks if the statement with the given digest and space URI already exists.
+ * The transaction is authorized by the creator and signed by the provided author account.
+ *
+ * @param statementUri - The URI of the statement to be revoked.
+ * @param creatorUri - The DID URI of the creator of the statement. This identifier is
+ *        used to authorize the transaction.
+ * @param authorAccount - The blockchain account used to sign and submit the transaction.
+ * @param authorizationUri - The URI of the authorization used for the statement.
+ * @param signCallback - A callback function that handles the signing of the transaction.
+ * @param selectiveData - A selective data entry associated with the statement identifier to be updated.
+ * @returns The element URI of the updated statement.
+ *
+ * @throws {SDKErrors.CordDispatchError} - Thrown when there is an error during the dispatch process,
+ *         such as issues with constructing the transaction, signing, or submission to the blockchain.
+ *
+ * @example
+ * ```typescript
+ * const statementUri = 'stmt:cord:example_uri';
+ * const creatorUri = 'did:cord:creator_uri';
+ * const authorAccount = // ... initialization ...
+ * const authorizationUri = 'auth:cord:example_uri';
+ * const signCallback = // ... implementation ...
+ *
+ * dispatchUpdateSelectiveDataToChain(statementUri, creatorUri, authorAccount, selectiveData, authorizationUri, signCallback)
+ *   .then(statementUri => {
+ *     console.log('Statement updated with URI:', statementUri);
+ *   })
+ *   .catch(error => {
+ *     console.error('Error dispatching statement update to chain:', error);
+ *   });
+ * ```
+ */
+export async function dispatchUpdateSelectiveDataToChain(
+  statementUri: StatementUri,
+  creatorUri: DidUri,
+  authorAccount: CordKeyringPair,
+  selectiveData: [string, string][],
+  authorizationUri: AuthorizationUri,
+  signCallback: SignExtrinsicCallback,
+): Promise<StatementUri> {
+  try {
+
+    const api = ConfigService.get('api')
+    const authorizationId: AuthorizationId = uriToIdentifier(authorizationUri)
+
+    const stmtIdDigest = uriToStatementIdAndDigest(statementUri)
+    const stmtId = stmtIdDigest.identifier
+
+    const tx = api.tx.statement.updateSelectiveData(
+      stmtId, 
+      selectiveData,
+      authorizationId
+    )
+
+    const extrinsic = await Did.authorizeTx(
+      creatorUri,
+      tx,
+      signCallback,
+      authorAccount.address
+    )
+
+    await Chain.signAndSubmitTx(extrinsic, authorAccount)
+
+    return statementUri
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : JSON.stringify(error)
+    throw new SDKErrors.CordQueryError(
+      `Error dispatching to chain: ${errorMessage}`
+    )
+  }
+}
+
+export async function dispatchRemoveSelectiveDataToChain(
+  statementUri: StatementUri,
+  creatorUri: DidUri,
+  removeAll: boolean = false,
+  keysToRemove: string [] = [],
+  authorAccount: CordKeyringPair,
+  authorizationUri: AuthorizationUri,
+  signCallback: SignExtrinsicCallback,
+): Promise<StatementUri> {
+  try {
+    const api = ConfigService.get('api')
+    const authorizationId: AuthorizationId = uriToIdentifier(authorizationUri)
+
+    const stmtIdDigest = uriToStatementIdAndDigest(statementUri)
+    const stmtId = stmtIdDigest.identifier
+
+    if ((!keysToRemove || keysToRemove.length === 0) && !removeAll) {
+      throw new SDKErrors.SDKError('Either `keysToRemove` must be provided or `removeAll` must be true.');
+    } else if (keysToRemove.length > 0 && removeAll) {
+      throw new SDKErrors.SDKError('Both `keysToRemove` and `removeAll` cannot be provided simultaneously.');
+    }
+
+    let tx: SubmittableExtrinsic;
+    if (removeAll) {
+      tx = api.tx.statement.removeSelectiveData(
+        stmtId, 
+        removeAll,
+        null,
+        authorizationId
+      )
+    } else {
+      tx = api.tx.statement.removeSelectiveData(
+        stmtId, 
+        null,
+        keysToRemove,
+        authorizationId
+      )
+    }
+
+    const extrinsic = await Did.authorizeTx(
+      creatorUri,
+      tx,
+      signCallback,
+      authorAccount.address
+    )
+
+    await Chain.signAndSubmitTx(extrinsic, authorAccount)
+
+    return statementUri
+  } catch (error) {
+    const errorMessage =
+      error instanceof Error ? error.message : JSON.stringify(error)
+    throw new SDKErrors.CordQueryError(
+      `Error dispatching to chain: ${errorMessage}`
     )
   }
 }
@@ -261,7 +402,8 @@ export async function prepareExtrinsicToRegister(
   creatorUri: DidUri,
   authorAccount: CordKeyringPair,
   authorizationUri: AuthorizationUri,
-  signCallback: SignExtrinsicCallback
+  signCallback: SignExtrinsicCallback,
+  selectiveData: [string, string][] = []
 ): Promise<SubmittableExtrinsic> {
   try {
     const api = ConfigService.get('api')
@@ -280,8 +422,8 @@ export async function prepareExtrinsicToRegister(
     }
 
     const tx = schemaId
-      ? api.tx.statement.register(stmtEntry.digest, authorizationId, schemaId)
-      : api.tx.statement.register(stmtEntry.digest, authorizationId, null)
+      ? api.tx.statement.register(stmtEntry.digest, authorizationId, schemaId, selectiveData)
+      : api.tx.statement.register(stmtEntry.digest, authorizationId, null, selectiveData)
 
     const extrinsic = await Did.authorizeTx(
       creatorUri,
@@ -299,22 +441,20 @@ export async function prepareExtrinsicToRegister(
 }
 
 /**
- * Dispatches a statement update transaction to the CORD blockchain.
+ * Dispatches a update selective data associated with the statement transaction to the CORD blockchain.
  *
  * @remarks
- * This function is used to update an existing statement on the blockchain.
+ * This function is used to update an existing statement selective data entry on the blockchain.
  * It first checks if the statement with the given digest and space URI already exists.
- * If it does, the function constructs and submits a transaction to update the statement.
  * The transaction is authorized by the creator and signed by the provided author account.
  *
- * @param stmtEntry - The statement entry object containing the necessary information
- *        for updating the statement on the blockchain. This includes the digest, element URI,
- *        creator URI, space URI, and optionally a schema URI.
+ * @param statementUri - The URI of the statement to be revoked.
  * @param creatorUri - The DID URI of the creator of the statement. This identifier is
  *        used to authorize the transaction.
  * @param authorAccount - The blockchain account used to sign and submit the transaction.
  * @param authorizationUri - The URI of the authorization used for the statement.
  * @param signCallback - A callback function that handles the signing of the transaction.
+ * @param selectiveData - A selective data entry associated with the statement identifier to be updated.
  * @returns The element URI of the updated statement.
  *
  * @throws {SDKErrors.CordDispatchError} - Thrown when there is an error during the dispatch process,
@@ -344,7 +484,8 @@ export async function dispatchUpdateToChain(
   creatorUri: DidUri,
   authorAccount: CordKeyringPair,
   authorizationUri: AuthorizationUri,
-  signCallback: SignExtrinsicCallback
+  signCallback: SignExtrinsicCallback,
+  selectiveData: [string, string][] = []
 ): Promise<StatementUri> {
   try {
     const api = ConfigService.get('api')
@@ -360,7 +501,8 @@ export async function dispatchUpdateToChain(
     const tx = api.tx.statement.update(
       stmtIdDigest.identifier,
       stmtEntry.digest,
-      authorizationId
+      authorizationId,
+      selectiveData
     )
 
     const extrinsic = await Did.authorizeTx(
