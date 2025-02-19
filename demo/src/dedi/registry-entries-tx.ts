@@ -15,7 +15,7 @@ async function getBalance(address: string, api) {
 async function main() {
   const networkAddress = process.env.NETWORK_ADDRESS
     ? process.env.NETWORK_ADDRESS
-    : 'ws://127.0.0.1:9944'
+    : 'ws://127.0.0.1:9933'
 
   Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
   await Cord.connect(networkAddress)
@@ -27,7 +27,7 @@ async function main() {
 
   console.log(`\n❄️  New Network Member`)
   const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-    process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+    process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x3ee068f9a31db0bff8b1c1d3f198ebd798f54dc30ad33dd2150ca333c932152b//1',
     'sr25519'
   )
 

@@ -1,6 +1,7 @@
 import * as Cord from '@cord.network/sdk'
 import { createAccount } from '../utils/createAccount'
 import { SubmittableExtrinsic } from '@polkadot/api/types'; 
+import { ApiPromise } from '@cord.network/sdk';
 
 import moment from "moment";
 
@@ -13,6 +14,9 @@ import fs from 'fs';
 import path from 'path';
 
 import fetch from 'node-fetch';
+
+let api1: ApiPromise;
+let api2: ApiPromise;
 
 /* 
 * NOTE/ README:
@@ -126,29 +130,36 @@ async function waitUntilZeroPendingTransactions() {
 
 async function main() {
   try {
-    const networkAddress = process.env.NETWORK_ADDRESS
-      ? process.env.NETWORK_ADDRESS
-      : 'ws://127.0.0.1:9944'
+    const networkAddress1 = 'wss://weave1.testnet.cord.network';
+    const networkAddress2 = 'wss://weave2.testnet.cord.network';
 
     Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
-    await Cord.connect(networkAddress)
 
-    const api = Cord.ConfigService.get('api');
+    // Connect to both endpoints
+    await Promise.all([Cord.connect(networkAddress1), Cord.connect(networkAddress2)]);
+
+    api1 = Cord.ConfigService.get('api');
+    api2 = Cord.ConfigService.get('api');
 
     // Step 1: Setup Membership
     // Setup transaction author account - CORD Account.
     log(`\n❄️  New Network Member`)
     const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x7dec09818346e4ce15fba110fc5855445a9a20ff163b408d98fcf42ae5759a89//1',
       'sr25519'
     )
 
-    // Setup network member account.
-    const { account: authorIdentity } = await createAccount()
-    log(`🏦  Member (${authorIdentity.type}): ${authorIdentity.address}`)
+    // Setup network member account 1.
+    const { account: authorIdentity1 } = await createAccount()
+    log(`🏦  Member (${authorIdentity1.type}): ${authorIdentity1.address}`)
 
+    // Setup network member account 2.
+    const { account: authorIdentity2 } = await createAccount()
+    log(`🏦  Member (${authorIdentity2.type}): ${authorIdentity2.address}`)
+
+    // Transfer fund to member account 1.
     try {      
-      let tx = await api.tx.balances.transferAllowDeath(authorIdentity.address, new BN('1732334381294000000000'));
+      let tx = await api1.tx.balances.transferAllowDeath(authorIdentity1.address, new BN('1732334381294000000000'));
 
       await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
       log("Balance transferred successfully!");
@@ -158,8 +169,23 @@ async function main() {
       }
     }
 
-    const initialBalance = await getBalance(api, authorIdentity.address);
-    log(`Initial Balance: ${initialBalance.toString()}`);
+    // Transfer fund to member account 2.
+    try {      
+      let tx = await api1.tx.balances.transferAllowDeath(authorIdentity2.address, new BN('1732334381294000000000'));
+
+      await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
+      log("Balance transferred successfully!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        log(`Error in main function: ${error.message}`);
+      }
+    }
+
+    const initialBalance1 = await getBalance(api1, authorIdentity1.address);
+    log(`Initial Balance: ${initialBalance1.toString()}`);
+
+    const initialBalance2 = await getBalance(api1, authorIdentity2.address);
+    log(`Initial Balance: ${initialBalance2.toString()}`);
 
     // Create a namespace
     console.log(`\n❄️  Namespace Creation `)
@@ -174,7 +200,7 @@ async function main() {
     const namespace_digest = await Cord.Registries.getDigestFromRawData(namespace_stringified_blob);
 
     const namespaceDetails = await Cord.Namespace.namespaceCreateProperties(
-      authorIdentity.address,
+      authorIdentity1.address,
       namespace_digest,            
       namespace_blob,              
     );
@@ -183,7 +209,7 @@ async function main() {
 
     const namespace = await Cord.Namespace.dispatchCreateToChain(
       namespaceDetails,
-      authorIdentity,
+      authorIdentity1,
     );
       
     console.log('\n✅ Namespace created!');
@@ -196,7 +222,7 @@ async function main() {
 
     let schemaProperties = Cord.SchemaAccounts.buildFromProperties(
       newSchemaContent,
-      authorIdentity.address,
+      authorIdentity1.address,
     )
     console.dir(schemaProperties, {
       depth: null,
@@ -204,7 +230,7 @@ async function main() {
     })
     const schemaUri = await Cord.SchemaAccounts.dispatchToChain(
       schemaProperties.schema,
-      authorIdentity,
+      authorIdentity1,
     )
     log(`✅ Schema - ${schemaUri} - added!`)
 
@@ -254,7 +280,7 @@ async function main() {
 
     // Crreate a Registry Property.
     const registryDetails = await Cord.Registries.registryCreateProperties(
-      authorIdentity.address,
+      authorIdentity1.address,
       namespace.authorizationUri,
       digest,           
       null,             
@@ -265,32 +291,61 @@ async function main() {
     
     const registry = await Cord.Registries.dispatchCreateRegistryToChain(
       registryDetails,
-      authorIdentity,
+      authorIdentity1,
     );
 
     log("Registry URI", registryDetails.uri);
       
     log('\n✅ Registry created!');
 
+    // Add a delegate to the registry, so that the member can create entries.
+    console.log(`\n❄️  Registry Assert Authorization `);
+
+    // Add a delegate with ASSERT permission
+    const assertPermission: Cord.RegistryPermissionType = Cord.RegistryPermission.ASSERT;
+    const registryAssertAuthProperties =
+        await Cord.Registries.registryAuthorizationProperties(
+        registry.uri,
+        authorIdentity2.address,
+        assertPermission,
+        authorIdentity1.address
+        )
+
+    console.dir(registryAssertAuthProperties, {
+        depth: null,
+        colors: true,
+    })
+
+    const delegateAssertAuthorizationUri = await Cord.Registries.dispatchDelegateAuthorization(
+        registryAssertAuthProperties,
+        namespace.authorizationUri,
+        registry.authorizationUri,
+        authorIdentity1
+    )
+
+    console.log(`\n✅ Registry Authorization added with ASSERT permission - ${delegateAssertAuthorizationUri} - added!`)
+
     /* (10_000 * 1_00_000) = 1 Billion in batches of 10_000 */
-    let maxOuterBatches = 1; 
+    let maxOuterBatches = 10; 
     let txCount = 1_00_000;
-    let perBatch = 10_000;
+    let perBatch = 5_00;
 
     let outerBatchStartTime = moment();
 
     for (let i = 0; i < maxOuterBatches; i++) {
       log(`\nProcessing outer batch ${i + 1}...`);
 
-      await batchTransactions(api, authorIdentity, registry.uri, registry.authorizationUri, txCount, perBatch);
+      const dividedTxCount = Math.ceil(txCount / 2);
+
+      await Promise.all([
+        batchTransactions(api1, authorIdentity1, registry.uri, registry.authorizationUri, dividedTxCount, perBatch),
+        batchTransactions(api2, authorIdentity2, registry.uri, delegateAssertAuthorizationUri, dividedTxCount, perBatch)
+      ]);
 
       log(`\nNumber of transactions sent to chain: ${(i+1) * 1_00_000}`);
 
       // Start the monitoring function
-      await monitorPendingTransactions();
-
-      // await getRpcIdOnly().catch((error) => console.error('Error:', error));
-      // await new Promise((resolve) => setTimeout(resolve, 20000));
+      // await monitorPendingTransactions();
     }
 
     let outerBatchEndTime = moment();
@@ -298,10 +353,10 @@ async function main() {
     let outerBatchDurationInSeconds = outerBatchEndTime.diff(outerBatchStartTime, 'seconds');
     log(`\nTotal time for ${maxOuterBatches} maximum outer batches: ${outerBatchDurationInSeconds} seconds`);
 
-    const finalBalance = await getBalance(api, authorIdentity.address);
+    const finalBalance = await getBalance(api1, authorIdentity1.address);
     log(`Final Balance: ${finalBalance.toString()}`);
 
-    const totalConsumed = initialBalance.sub(finalBalance);
+    const totalConsumed = initialBalance1.sub(finalBalance);
     log(`Total Balance Consumed: ${totalConsumed.toString()}`);
 
     const totalTransactions = maxOuterBatches * (1_00_000); 
@@ -309,10 +364,10 @@ async function main() {
     log(`Balance per Transaction: ${balancePerTransaction.toString()}`);
 
     const remainingPercentage =
-      (Number(finalBalance) / Number(initialBalance)) * 100;
+      (Number(finalBalance) / Number(initialBalance1)) * 100;
     const consumedPercentage = 100 - remainingPercentage;
 
-    log(`Initial Balance: ${initialBalance}`);
+    log(`Initial Balance: ${initialBalance1}`);
     log(`Final Balance: ${finalBalance}`);
     log(`Total Balance Consumed: ${totalConsumed}`);
     log(`Balance Per Transaction: ${balancePerTransaction}`);
@@ -363,7 +418,7 @@ async function batchTransactions(
           registryEntryDetails.uri.split(":")[2],
           registryEntryDetails.authorizationUri.replace('registryauth:cord:', ''),
           registryEntryDetails.digest,
-          null, //registryEntryDetails.digest,
+          null, //registryEntryDetails.blob,
         );
 
         txBatch.push(tx);
@@ -382,8 +437,8 @@ async function batchTransactions(
 
       // This is working and having no spikes in memory usage,
       // Heap memory usage can be tracked through enabling `--inspect` subcommand on node.
-      await batchExtrinsic.signAndSend(authorIdentity, { nonce: currentNonce });
-      currentNonce++;
+      await batchExtrinsic.signAndSend(authorIdentity, { nonce: -1 });
+      currentNonce = currentNonce + 1;
 
       /* Memory spikes in below submission attempts */
       // Sign the batch with the correct nonce
@@ -463,10 +518,18 @@ async function getBalance(api: Cord.ApiPromise, address: string) {
 
 main()
   .then(() => log('\nBye! 👋 👋 👋 '))
-  .finally(Cord.disconnect)
+  .finally(() => {
+    if (api1) {
+      api1.disconnect();
+    }
+    if (api2) {
+      api2.disconnect();
+    }   
+  });
 
 process.on('SIGINT', async () => {
   log('\nBye! 👋 👋 👋 \n')
-  Cord.disconnect()
+  if (api1) api1.disconnect();
+  if (api2) api2.disconnect();
   process.exit(0)
 })

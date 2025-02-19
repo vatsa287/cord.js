@@ -128,7 +128,7 @@ async function main() {
   try {
     const networkAddress = process.env.NETWORK_ADDRESS
       ? process.env.NETWORK_ADDRESS
-      : 'ws://127.0.0.1:9944'
+      : 'wss://weave1.testnet.cord.network'
 
     Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
     await Cord.connect(networkAddress)
@@ -139,7 +139,7 @@ async function main() {
     // Setup transaction author account - CORD Account.
     log(`\n❄️  New Network Member`)
     const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x7dec09818346e4ce15fba110fc5855445a9a20ff163b408d98fcf42ae5759a89//1',
       'sr25519'
     )
 
@@ -273,9 +273,9 @@ async function main() {
     log('\n✅ Registry created!');
 
     /* (10_000 * 1_00_000) = 1 Billion in batches of 10_000 */
-    let maxOuterBatches = 1; 
+    let maxOuterBatches = 10; 
     let txCount = 1_00_000;
-    let perBatch = 10_000;
+    let perBatch = 5_00;
 
     let outerBatchStartTime = moment();
 
@@ -382,7 +382,7 @@ async function batchTransactions(
 
       // This is working and having no spikes in memory usage,
       // Heap memory usage can be tracked through enabling `--inspect` subcommand on node.
-      await batchExtrinsic.signAndSend(authorIdentity, { nonce: currentNonce });
+      await batchExtrinsic.signAndSend(authorIdentity, { nonce: -1 });
       currentNonce++;
 
       /* Memory spikes in below submission attempts */

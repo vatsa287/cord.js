@@ -35,9 +35,13 @@ const log = (...args: any[]) => {
 
 async function main() {
   try {
+    // const networkAddress = process.env.NETWORK_ADDRESS
+    //   ? process.env.NETWORK_ADDRESS
+    //   : 'wss://weave1.testnet.cord.network';
     const networkAddress = process.env.NETWORK_ADDRESS
       ? process.env.NETWORK_ADDRESS
-      : 'ws://127.0.0.1:9944'
+      : 'ws://localhost:9933';
+
 
     Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
     await Cord.connect(networkAddress)
@@ -86,7 +90,7 @@ async function getRegistryEntriesCount(api: Cord.ApiPromise) {
 
       startKey = entries[entries.length - 1].toHex();
 
-      log(`Processed ${registryEntriesCount} entries so far...`);
+      // log(`Processed ${registryEntriesCount} entries so far...`);
     }
   } catch (error) {
     log('Error querying registry entries:', error);

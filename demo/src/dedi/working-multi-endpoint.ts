@@ -1,6 +1,7 @@
 import * as Cord from '@cord.network/sdk'
 import { createAccount } from '../utils/createAccount'
 import { SubmittableExtrinsic } from '@polkadot/api/types'; 
+import { ApiPromise } from '@cord.network/sdk';
 
 import moment from "moment";
 
@@ -12,7 +13,10 @@ import { UUID } from '@cord.network/utils';
 import fs from 'fs';
 import path from 'path';
 
-import fetch from 'node-fetch';
+// import fetch from 'node-fetch';
+
+let api1: ApiPromise;
+let api2: ApiPromise;
 
 /* 
 * NOTE/ README:
@@ -61,9 +65,27 @@ const log = (...args: any[]) => {
   console.log(...args); 
 }
 
-async function getRpcPendingTransactions() {
+// const ENDPOINTS = [
+//   'https://weave1.testnet.cord.network',
+//   'https://weave2.testnet.cord.network',
+//   'https://weave.testnet.cord.network',
+// ];
+
+const wssEndpoints = [
+  'ws://127.0.0.1:9933',
+  'ws://127.0.0.1:9934',
+  'ws://127.0.0.1:9935', 
+];
+
+const ENDPOINTS = [
+  'http://127.0.0.1:9933',
+  'http://127.0.0.1:9934',
+  'http://127.0.0.1:9935',
+];
+
+async function getRpcPendingTransactions(endpoint: string): Promise<number> {
   try {
-    const response = await fetch('http://127.0.0.1:9944', {
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -75,8 +97,8 @@ async function getRpcPendingTransactions() {
     });
 
     if (!response.ok) {
-      console.error(`Error: HTTP status ${response.status}`);
-      return -1; 
+      console.error(`Error: HTTP status ${response.status} from ${endpoint}`);
+      return -1;
     }
 
     const data = await response.json();
@@ -84,71 +106,120 @@ async function getRpcPendingTransactions() {
     if (data && Array.isArray(data.result)) {
       return data.result.length;
     } else {
-      console.error('Error: Unexpected response format or undefined result');
+      console.error(`Error: Unexpected response format or undefined result from ${endpoint}`);
       return -1;
     }
-  } catch (error) {
-    console.error(`Error: ${error.message}`);
-    return -1; 
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(`Error: ${error.message} from ${endpoint}`);
+    }
+
+    return -1;
   }
 }
 
 async function monitorPendingTransactions() {
   while (true) {
-    const pendingTransactions = await getRpcPendingTransactions();
-    log(`Pending Transactions: ${pendingTransactions}`);
+    const pendingTransactionsList = await Promise.all(ENDPOINTS.map(getRpcPendingTransactions));
 
-    /* pendingTransactions count of 3 works to have all transactions submitted to the chain */
-    /* -1 is reported when there is error from the RPC call, or the data is not a array type */
-    /* --rpc-max-response-size=MB can be configured for the response size */
-    if (pendingTransactions >= 3 || pendingTransactions < 0) {
-      log('Pending transactions count is >=3 . Waiting for it to become 0...');
+    log(`Pending Transactions per endpoint: ${JSON.stringify(pendingTransactionsList)}`);
+
+    const maxPendingTransactions = Math.max(...pendingTransactionsList);
+    const hasInvalidEndpoint = pendingTransactionsList.some((count) => count === -1);
+
+    if (maxPendingTransactions >= 5 || hasInvalidEndpoint) {
+      log('One or more nodes have high pending transactions or returned an invalid value (-1). Waiting...');
       await waitUntilZeroPendingTransactions();
-      log('Pending transactions have dropped to 0. Resuming...');
+      log('Pending transactions have dropped to 0 on all nodes. Resuming...');
     } else {
-      log('Pending transactions are within acceptable limits.');
-      break; 
+      log('Pending transactions are within acceptable limits on all nodes.');
+      break;
     }
   }
 }
 
 async function waitUntilZeroPendingTransactions() {
   while (true) {
-    const pendingTransactions = await getRpcPendingTransactions();
-    if (pendingTransactions === 0) {
-      break; 
+    const pendingTransactionsList = await Promise.all(ENDPOINTS.map(getRpcPendingTransactions));
+    if (pendingTransactionsList.every(count => count === 0)) {
+      break;
     }
-    log('Still waiting...');
-    await new Promise(resolve => setTimeout(resolve, 5000)); 
+    log('Still waiting for all nodes to have zero pending transactions...');
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 }
 
+// async function connectAndGetApis(networkAddresses: string[]) {
+//   let originalConsoleLog = console.log;
+//   console.log = () => {};
+//   const apis = await Promise.all(
+//     networkAddresses.map(async (address) => {
+//       await Cord.connect(address);
+//       return Cord.ConfigService.get("api");
+//     })
+//   );
+
+//   console.log = originalConsoleLog;
+
+//   return apis;
+// }
 
 async function main() {
   try {
-    const networkAddress = process.env.NETWORK_ADDRESS
-      ? process.env.NETWORK_ADDRESS
-      : 'ws://127.0.0.1:9944'
+    // const networkAddress1 = 'wss://weave1.testnet.cord.network';
+    // const networkAddress2 = 'wss://weave2.testnet.cord.network';
+
+    const networkAddress1 = 'ws://localhost:9933';
+    const networkAddress2 = 'ws://localhost:9934';
+    // const networkAddress3 = 'ws://localhost:9935';
 
     Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
-    await Cord.connect(networkAddress)
+    // Connect to both endpoints
+    // await Promise.all([Cord.connect(networkAddress1), Cord.connect(networkAddress2)]);
+    // api1 = Cord.ConfigService.get('api');
+    // api2 = Cord.ConfigService.get('api');
 
-    const api = Cord.ConfigService.get('api');
+    const api1 = await Cord.connect(networkAddress1);
+    const api2 = await Cord.connect(networkAddress1);
+
+    // const apis = await connectAndGetApis(wssEndpoints);
 
     // Step 1: Setup Membership
     // Setup transaction author account - CORD Account.
     log(`\n❄️  New Network Member`)
+    // Weave testnet
+    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
+    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x7dec09818346e4ce15fba110fc5855445a9a20ff163b408d98fcf42ae5759a89//1',
+    //   'sr25519'
+    // )
+    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
+    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+    //   'sr25519'
+    // )
+
+    // Mac local
     const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x8a53a34c8198440e36b5c54097e07b0b2e485d1c9e0e7d9f700bb281085173e1//1',
       'sr25519'
     )
 
-    // Setup network member account.
-    const { account: authorIdentity } = await createAccount()
-    log(`🏦  Member (${authorIdentity.type}): ${authorIdentity.address}`)
+    // ssh local
+    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
+    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x5ec335b5f17329bcb6501f13c0bfed56d948628ff9cbcabdc9e6a8e192961fa5//1',
+    //   'sr25519'
+    // )
 
+    // Setup network member account 1.
+    const { account: authorIdentity1 } = await createAccount()
+    log(`🏦  Member (${authorIdentity1.type}): ${authorIdentity1.address}`)
+
+    // Setup network member account 2.
+    const { account: authorIdentity2 } = await createAccount()
+    log(`🏦  Member (${authorIdentity2.type}): ${authorIdentity2.address}`)
+
+    // Transfer fund to member account 1.
     try {      
-      let tx = await api.tx.balances.transferAllowDeath(authorIdentity.address, new BN('1732334381294000000000'));
+      let tx = await api1.tx.balances.transferAllowDeath(authorIdentity1.address, new BN('1732334381294000000000'));
 
       await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
       log("Balance transferred successfully!");
@@ -158,8 +229,23 @@ async function main() {
       }
     }
 
-    const initialBalance = await getBalance(api, authorIdentity.address);
-    log(`Initial Balance: ${initialBalance.toString()}`);
+    // Transfer fund to member account 2.
+    try {      
+      let tx = await api1.tx.balances.transferAllowDeath(authorIdentity2.address, new BN('1732334381294000000000'));
+
+      await Cord.Chain.signAndSubmitTx(tx, authorityAuthorIdentity);
+      log("Balance transferred successfully!");
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        log(`Error in main function: ${error.message}`);
+      }
+    }
+
+    const initialBalance1 = await getBalance(api1, authorIdentity1.address);
+    log(`Initial Balance: ${initialBalance1.toString()}`);
+
+    const initialBalance2 = await getBalance(api1, authorIdentity2.address);
+    log(`Initial Balance: ${initialBalance2.toString()}`);
 
     // Create a namespace
     console.log(`\n❄️  Namespace Creation `)
@@ -174,16 +260,16 @@ async function main() {
     const namespace_digest = await Cord.Registries.getDigestFromRawData(namespace_stringified_blob);
 
     const namespaceDetails = await Cord.Namespace.namespaceCreateProperties(
-      authorIdentity.address,
+      authorIdentity1.address,
       namespace_digest,            
-      namespace_blob,              
+      namespace_stringified_blob,              
     );
 
     console.log(`\n❄️  Namespace Create Details `, namespaceDetails);
 
     const namespace = await Cord.Namespace.dispatchCreateToChain(
       namespaceDetails,
-      authorIdentity,
+      authorIdentity1,
     );
       
     console.log('\n✅ Namespace created!');
@@ -196,7 +282,7 @@ async function main() {
 
     let schemaProperties = Cord.SchemaAccounts.buildFromProperties(
       newSchemaContent,
-      authorIdentity.address,
+      authorIdentity1.address,
     )
     console.dir(schemaProperties, {
       depth: null,
@@ -204,7 +290,7 @@ async function main() {
     })
     const schemaUri = await Cord.SchemaAccounts.dispatchToChain(
       schemaProperties.schema,
-      authorIdentity,
+      authorIdentity1,
     )
     log(`✅ Schema - ${schemaUri} - added!`)
 
@@ -254,7 +340,7 @@ async function main() {
 
     // Crreate a Registry Property.
     const registryDetails = await Cord.Registries.registryCreateProperties(
-      authorIdentity.address,
+      authorIdentity1.address,
       namespace.authorizationUri,
       digest,           
       null,             
@@ -265,43 +351,115 @@ async function main() {
     
     const registry = await Cord.Registries.dispatchCreateRegistryToChain(
       registryDetails,
-      authorIdentity,
+      authorIdentity1,
     );
 
     log("Registry URI", registryDetails.uri);
       
     log('\n✅ Registry created!');
 
+    // Add a delegate to the registry, so that the member can create entries.
+    console.log(`\n❄️  Registry Assert Authorization `);
+
+    // Add a delegate with ASSERT permission
+    const assertPermission: Cord.RegistryPermissionType = Cord.RegistryPermission.ASSERT;
+    const registryAssertAuthProperties =
+        await Cord.Registries.registryAuthorizationProperties(
+        registry.uri,
+        authorIdentity2.address,
+        assertPermission,
+        authorIdentity1.address
+        )
+
+    console.dir(registryAssertAuthProperties, {
+        depth: null,
+        colors: true,
+    })
+
+    const delegateAssertAuthorizationUri = await Cord.Registries.dispatchDelegateAuthorization(
+        registryAssertAuthProperties,
+        namespace.authorizationUri,
+        registry.authorizationUri,
+        authorIdentity1
+    )
+
+    console.log(`\n✅ Registry Authorization added with ASSERT permission - ${delegateAssertAuthorizationUri} - added!`)
+
     /* (10_000 * 1_00_000) = 1 Billion in batches of 10_000 */
     let maxOuterBatches = 1; 
     let txCount = 1_00_000;
-    let perBatch = 10_000;
+    let perBatch = 10;
 
     let outerBatchStartTime = moment();
+    const initialNonce1 = (await api1.query.system.account(authorIdentity1.address)).nonce.toNumber();
+    // const initialNonce2 = (await api2.query.system.account(authorIdentity2.address)).nonce.toNumber();
+
+    let currentNonce1 = initialNonce1;
+    // let currentNonce2 = initialNonce2;
 
     for (let i = 0; i < maxOuterBatches; i++) {
-      log(`\nProcessing outer batch ${i + 1}...`);
+        log(`\nProcessing outer batch ${i + 1}...`);
 
-      await batchTransactions(api, authorIdentity, registry.uri, registry.authorizationUri, txCount, perBatch);
+        log(`\nBefore: Current Nonce 1: ${currentNonce1}`);
+        let newNonce = await batchTransactions(api1, authorIdentity1, registry.uri, registry.authorizationUri, txCount, perBatch, currentNonce1);
+        if (newNonce !== undefined) {
+          currentNonce1 = newNonce;
+        }
+        log(`\nAfter: Current Nonce 1: ${currentNonce1}`);
 
-      log(`\nNumber of transactions sent to chain: ${(i+1) * 1_00_000}`);
+        // Use Promise.all to execute both batches in parallel
+        // const dividedTxCount = Math.ceil(txCount / 2);
+        // log(`\nBefore: Current Nonce 1: ${currentNonce1}, Current Nonce 2: ${currentNonce2}`);
+        // const [newNonce1, newNonce2] = await Promise.all([
+        //     (async () => {
+        //     return await batchTransactions(
+        //         api1,
+        //         authorIdentity1,
+        //         registry.uri,
+        //         registry.authorizationUri,
+        //         dividedTxCount,
+        //         perBatch,
+        //         currentNonce1
+        //     );
+        //     })(),
+        //     (async () => {
+        //     return await batchTransactions(
+        //         api2,
+        //         authorIdentity2,
+        //         registry.uri,
+        //         delegateAssertAuthorizationUri,
+        //         dividedTxCount,
+        //         perBatch,
+        //         currentNonce2
+        //     );
+        //     })()
+        // ]);
 
-      // Start the monitoring function
-      await monitorPendingTransactions();
+        // if (newNonce1 !== undefined) {
+        //   currentNonce1 = newNonce1;
+        // }
+        // if (newNonce2 !== undefined) {
+        //   currentNonce2 = newNonce2;
+        // }
 
-      // await getRpcIdOnly().catch((error) => console.error('Error:', error));
-      // await new Promise((resolve) => setTimeout(resolve, 20000));
+        // log(`\nAfter: Current Nonce 1: ${currentNonce1}, Current Nonce 2: ${currentNonce2}`);
+
+        // log(`\nNumber of transactions sent to chain: ${(i + 1) * 100_000}`);
+
+        // Optional: Start the monitoring function here if needed
+        await monitorPendingTransactions();
     }
+
 
     let outerBatchEndTime = moment();
 
     let outerBatchDurationInSeconds = outerBatchEndTime.diff(outerBatchStartTime, 'seconds');
     log(`\nTotal time for ${maxOuterBatches} maximum outer batches: ${outerBatchDurationInSeconds} seconds`);
 
-    const finalBalance = await getBalance(api, authorIdentity.address);
+    const finalBalance = await getBalance(api1, authorIdentity1.address);
     log(`Final Balance: ${finalBalance.toString()}`);
 
-    const totalConsumed = initialBalance.sub(finalBalance);
+    const totalConsumed = initialBalance1.sub(finalBalance);
     log(`Total Balance Consumed: ${totalConsumed.toString()}`);
 
     const totalTransactions = maxOuterBatches * (1_00_000); 
@@ -309,10 +467,10 @@ async function main() {
     log(`Balance per Transaction: ${balancePerTransaction.toString()}`);
 
     const remainingPercentage =
-      (Number(finalBalance) / Number(initialBalance)) * 100;
+      (Number(finalBalance) / Number(initialBalance1)) * 100;
     const consumedPercentage = 100 - remainingPercentage;
 
-    log(`Initial Balance: ${initialBalance}`);
+    log(`Initial Balance: ${initialBalance1}`);
     log(`Final Balance: ${finalBalance}`);
     log(`Total Balance Consumed: ${totalConsumed}`);
     log(`Balance Per Transaction: ${balancePerTransaction}`);
@@ -334,16 +492,17 @@ async function batchTransactions(
   authorIdentity: Cord.CordKeyringPair,
   registryUri: Cord.RegistryUri,
   registryAuthUri: Cord.RegistryAuthorizationUri,
-  txCount: number, perBatch: number) {
+  txCount: number, perBatch: number, initialNonce: number) {
 
   let startTxPrep = moment();
 
-  const initialNonce = (await api.query.system.account(authorIdentity.address)).nonce.toNumber();
+  // const initialNonce = (await api.query.system.account(authorIdentity.address)).nonce.toNumber();
   let currentNonce = initialNonce;
 
-  log(`\nPreparing and submitting ${txCount} transactions in batches of ${perBatch}...`);
+  // log(`\nPreparing and submitting ${txCount} transactions in batches of ${perBatch}...`);
 
   const txBatch: SubmittableExtrinsic<'promise'>[] = [];
+  // let batchQueue: Promise<void>[] = [];
 
   try {
     for (let j = 0; j < Math.ceil(txCount / perBatch); j++) {
@@ -363,27 +522,72 @@ async function batchTransactions(
           registryEntryDetails.uri.split(":")[2],
           registryEntryDetails.authorizationUri.replace('registryauth:cord:', ''),
           registryEntryDetails.digest,
-          null, //registryEntryDetails.digest,
+          null, //registryEntryDetails.blob,
         );
 
         txBatch.push(tx);
 
-        process.stdout.write(
-          `  🔖  Prepared ${(j * perBatch + k + 1)} transactions in ${moment
-            .duration(moment().diff(startTxPrep))
-            .asSeconds()
-            .toFixed(3)}s\r`
-        );
+        // process.stdout.write(
+        //   `  🔖  Prepared ${(j * perBatch + k + 1)} transactions in ${moment
+        //     .duration(moment().diff(startTxPrep))
+        //     .asSeconds()
+        //     .toFixed(3)}s\r`
+        // );
       }
 
-      log(`\nSubmitting batch ${j + 1}...`);
-
-      const batchExtrinsic = api.tx.utility.batchAll(txBatch);
+      // log(`\nSubmitting batch ${j + 1}...`);
 
       // This is working and having no spikes in memory usage,
       // Heap memory usage can be tracked through enabling `--inspect` subcommand on node.
+      const batchExtrinsic = api.tx.utility.batchAll(txBatch);
       await batchExtrinsic.signAndSend(authorIdentity, { nonce: currentNonce });
-      currentNonce++;
+      currentNonce = currentNonce + 1;
+
+      /* Below works fine but it is too slow. */
+      // await new Promise<void>((resolve, reject) => {
+      //   batchExtrinsic.signAndSend(authorIdentity, { nonce: currentNonce }, ({ status, events }) => {
+      //     if (status.isInBlock) {
+      //       log(`✅ Batch ${j + 1} included in block ${status.asInBlock.toString()}`);
+      //     }
+      //     if (status.isFinalized) {
+      //       log(`🎉 Batch ${j + 1} finalized in block ${status.asFinalized.toString()}`);
+      //       resolve(); // Proceed to the next batch only after finalization
+      //     }
+      //     if (status.isDropped || status.isInvalid) {
+      //       log(`❌ Batch ${j + 1} was dropped or invalid`);
+      //       reject(new Error(`Batch ${j + 1} failed`));
+      //     }
+      //   }).catch((error) => {
+      //     log(`❌ Error submitting batch ${j + 1}:`, error.message);
+      //     reject(error);
+      //   });
+      // });
+      // currentNonce = currentNonce + 1;
+
+
+      /* Below is the way to do with Promise.allSettled with a queue and controlled parallelism. 
+       * But below is too slow when we set 10 as max batch queue length, and 50 causes memory out of bounds issues */
+      // const batchExtrinsic = api.tx.utility.batchAll(txBatch);
+      // // Push to queue for concurrent execution
+      // batchQueue.push(
+      //   new Promise<void>((resolve, reject) => {
+      //     batchExtrinsic.signAndSend(authorIdentity, { nonce: currentNonce }, ({ status }) => {
+      //       if (status.isFinalized) {
+      //         log(`✅ Batch ${j + 1} finalized.`);
+      //         resolve();
+      //       } else if (status.isDropped || status.isInvalid) {
+      //         reject(new Error(`❌ Batch ${j + 1} failed`));
+      //       }
+      //     }).catch(reject);
+      //   })
+      // );
+      // currentNonce++; 
+      // // Control parallelism: Wait for batches to settle every 5 submissions
+      // if (batchQueue.length >= 1500) {
+      //   await Promise.allSettled(batchQueue);
+      //   batchQueue = []; // Clear queue after processing
+      // }
+
 
       /* Memory spikes in below submission attempts */
       // Sign the batch with the correct nonce
@@ -427,7 +631,7 @@ async function batchTransactions(
       //       reject(error);
       //     });
       // });
-      // Increment nonce for the next batch
+      // // Increment nonce for the next batch
       // currentNonce++;
 
       // Empty the array after use.
@@ -444,16 +648,19 @@ async function batchTransactions(
     
       await new Promise((resolve) => setImmediate(resolve));
     }
+    // Wait for any remaining batches before returning
+    // await Promise.allSettled(batchQueue);
   } catch (e: unknown) {
     if (e instanceof Error) {
         log(`Error during transaction preparation or submission: ${e.message}`);
     }
-    return 
   }
 
   const batchDuration = moment.duration(moment().diff(startTxPrep)).asSeconds();
   log(`\n  🎁  Anchoring ${txCount} transactions took ${batchDuration.toFixed(3)}s`);
   log(`  🙌  Block TPS (batch transactions) - ${Math.round(txCount / batchDuration)} `);
+
+  return currentNonce;
 }
 
 async function getBalance(api: Cord.ApiPromise, address: string) {
@@ -463,10 +670,18 @@ async function getBalance(api: Cord.ApiPromise, address: string) {
 
 main()
   .then(() => log('\nBye! 👋 👋 👋 '))
-  .finally(Cord.disconnect)
+  .finally(() => {
+    if (api1) {
+      api1.disconnect();
+    }
+    if (api2) {
+      api2.disconnect();
+    }   
+  });
 
 process.on('SIGINT', async () => {
   log('\nBye! 👋 👋 👋 \n')
-  Cord.disconnect()
+  if (api1) api1.disconnect();
+  if (api2) api2.disconnect();
   process.exit(0)
 })
