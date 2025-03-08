@@ -7,6 +7,7 @@ import {
   cordSignedExtensions as userExtensions,
   didApiCalls,
   TransactionWeightApiCalls,
+  IdentifierApiCalls,
 } from '@cord.network/type-definitions'
 
 // Only types and runtime calls can be exported from here.
@@ -15,6 +16,7 @@ export default {
   runtime: {
     ...didApiCalls,
     ...TransactionWeightApiCalls,
+    ...IdentifierApiCalls,
   },
   signedExtensions: {
     ...userExtensions,

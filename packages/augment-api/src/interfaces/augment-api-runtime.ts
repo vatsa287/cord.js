@@ -7,18 +7,19 @@ import '@polkadot/api-base/types/calls';
 
 import type { RawDidLinkedInfo } from '@cord.network/augment-api/extraDefs';
 import type { ApiTypes, AugmentedCall, DecoratedCallBase } from '@polkadot/api-base/types';
-import type { Bytes, Null, Option, Text, Vec, u32 } from '@polkadot/types-codec';
+import type { Bytes, Null, Option, Text, Vec, bool, u128, u32 } from '@polkadot/types-codec';
 import type { AnyNumber, ITuple } from '@polkadot/types-codec/types';
+import type { TAssetBalance } from '@polkadot/types/interfaces/assets';
 import type { BabeEquivocationProof, BabeGenesisConfiguration, Epoch, OpaqueKeyOwnershipProof } from '@polkadot/types/interfaces/babe';
 import type { CheckInherentsResult, InherentData } from '@polkadot/types/interfaces/blockbuilder';
 import type { BlockHash } from '@polkadot/types/interfaces/chain';
 import type { AuthorityId } from '@polkadot/types/interfaces/consensus';
+import type { CodeSource, CodeUploadResult, ContractExecResult, ContractInstantiateResult } from '@polkadot/types/interfaces/contracts';
 import type { Extrinsic } from '@polkadot/types/interfaces/extrinsics';
 import type { AuthorityList, GrandpaEquivocationProof, SetId } from '@polkadot/types/interfaces/grandpa';
 import type { OpaqueMetadata } from '@polkadot/types/interfaces/metadata';
-import type { RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
-import type { AccountId, AccountId32, Block, Header, Index, KeyTypeId, Slot } from '@polkadot/types/interfaces/runtime';
-import type { RuntimeVersion } from '@polkadot/types/interfaces/state';
+import type { FeeDetails, RuntimeDispatchInfo } from '@polkadot/types/interfaces/payment';
+import type { AccountId, AccountId32, Balance, Block, Header, Index, KeyTypeId, Slot, Weight, WeightV2 } from '@polkadot/types/interfaces/runtime';
 import type { ApplyExtrinsicResult } from '@polkadot/types/interfaces/system';
 import type { TransactionSource, TransactionValidity } from '@polkadot/types/interfaces/txqueue';
 import type { IExtrinsic, Observable } from '@polkadot/types/types';
@@ -34,6 +35,13 @@ declare module '@polkadot/api-base/types/calls' {
        * The API to query account nonce (aka transaction index)
        **/
       accountNonce: AugmentedCall<ApiType, (accountId: AccountId | string | Uint8Array) => Observable<Index>>;
+    };
+    /** 0x8453b50b22293977/1 */
+    assetsApi: {
+      /**
+       * Return the current set of authorities.
+       **/
+      accountBalances: AugmentedCall<ApiType, (account: AccountId | string | Uint8Array) => Observable<Vec<ITuple<[u32, TAssetBalance]>>>>;
     };
     /** 0x687ad44ad37f03c2/1 */
     authorityDiscoveryApi: {
@@ -88,20 +96,24 @@ declare module '@polkadot/api-base/types/calls' {
        **/
       inherentExtrinsics: AugmentedCall<ApiType, (inherent: InherentData | { data?: any } | string | Uint8Array) => Observable<Vec<Extrinsic>>>;
     };
-    /** 0xdf6acb689907609b/4 */
-    core: {
+    /** 0x68b66ba122c93fa7/2 */
+    contractsApi: {
       /**
-       * Execute the given block.
+       * Perform a call from a specified account to a given contract.
        **/
-      executeBlock: AugmentedCall<ApiType, (block: Block | { header?: any; extrinsics?: any } | string | Uint8Array) => Observable<Null>>;
+      call: AugmentedCall<ApiType, (origin: AccountId | string | Uint8Array, dest: AccountId | string | Uint8Array, value: Balance | AnyNumber | Uint8Array, gasLimit: Option<WeightV2> | null | Uint8Array | WeightV2 | { refTime?: any; proofSize?: any } | string, storageDepositLimit: Option<Balance> | null | Uint8Array | Balance | AnyNumber, inputData: Bytes | string | Uint8Array) => Observable<ContractExecResult>>;
       /**
-       * Initialize a block with the given header.
+       * Query a given storage key in a given contract.
        **/
-      initializeBlock: AugmentedCall<ApiType, (header: Header | { parentHash?: any; number?: any; stateRoot?: any; extrinsicsRoot?: any; digest?: any } | string | Uint8Array) => Observable<Null>>;
+      getStorage: AugmentedCall<ApiType, (address: AccountId | string | Uint8Array, key: Bytes | string | Uint8Array) => Observable<Option<Bytes>>>;
       /**
-       * Returns the version of the runtime.
+       * Instantiate a new contract.
        **/
-      version: AugmentedCall<ApiType, () => Observable<RuntimeVersion>>;
+      instantiate: AugmentedCall<ApiType, (origin: AccountId | string | Uint8Array, value: Balance | AnyNumber | Uint8Array, gasLimit: Option<WeightV2> | null | Uint8Array | WeightV2 | { refTime?: any; proofSize?: any } | string, storageDepositLimit: Option<Balance> | null | Uint8Array | Balance | AnyNumber, code: CodeSource | { Upload: any } | { Existing: any } | string | Uint8Array, data: Bytes | string | Uint8Array, salt: Bytes | string | Uint8Array) => Observable<ContractInstantiateResult>>;
+      /**
+       * Upload new code without instantiating a contract from it.
+       **/
+      uploadCode: AugmentedCall<ApiType, (origin: AccountId | string | Uint8Array, code: Bytes | string | Uint8Array, storageDepositLimit: Option<Balance> | null | Uint8Array | Balance | AnyNumber) => Observable<CodeUploadResult>>;
     };
     /** 0xa02708c798d60bce/1 */
     didApi: {
@@ -113,6 +125,17 @@ declare module '@polkadot/api-base/types/calls' {
        * Return the information relative to the owner of the provided didName, if any.
        **/
       queryByName: AugmentedCall<ApiType, (name: Text | string) => Observable<Option<RawDidLinkedInfo>>>;
+    };
+    /** 0x667394fa8209722a/1 */
+    entriesApi: {
+      /**
+       * Checks if the input registry entry identifier exist or not.
+       **/
+      doesIdentifierExists: AugmentedCall<ApiType, (identifier: Bytes | string | Uint8Array) => Observable<bool>>;
+      /**
+       * Retrieves all the identifiers of Registry Entries.
+       **/
+      retrieveAllIdentifiers: AugmentedCall<ApiType, () => Observable<Vec<Bytes>>>;
     };
     /** 0xed99c5acb25eedf5/3 */
     grandpaApi: {
@@ -172,6 +195,25 @@ declare module '@polkadot/api-base/types/calls' {
        * Validate the transaction.
        **/
       validateTransaction: AugmentedCall<ApiType, (source: TransactionSource | 'InBlock' | 'Local' | 'External' | number | Uint8Array, tx: Extrinsic | IExtrinsic | string | Uint8Array, blockHash: BlockHash | string | Uint8Array) => Observable<TransactionValidity>>;
+    };
+    /** 0x37c8bb1350a9a2a8/4 */
+    transactionPaymentApi: {
+      /**
+       * The transaction fee details
+       **/
+      queryFeeDetails: AugmentedCall<ApiType, (uxt: Extrinsic | IExtrinsic | string | Uint8Array, len: u32 | AnyNumber | Uint8Array) => Observable<FeeDetails>>;
+      /**
+       * The transaction info
+       **/
+      queryInfo: AugmentedCall<ApiType, (uxt: Extrinsic | IExtrinsic | string | Uint8Array, len: u32 | AnyNumber | Uint8Array) => Observable<RuntimeDispatchInfo>>;
+      /**
+       * Query the output of the current LengthToFee given some input
+       **/
+      queryLengthToFee: AugmentedCall<ApiType, (length: u32 | AnyNumber | Uint8Array) => Observable<Balance>>;
+      /**
+       * Query the output of the current WeightToFee given some input
+       **/
+      queryWeightToFee: AugmentedCall<ApiType, (weight: Weight | { refTime?: any; proofSize?: any } | string | Uint8Array) => Observable<Balance>>;
     };
     /** 0x5c8cda05c5979c32/1 */
     transactionWeightApi: {

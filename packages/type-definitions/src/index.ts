@@ -9,12 +9,14 @@ import { types8 } from './types_8.js'
 import { types9 } from './types_9.js'
 import { calls as didApiCalls } from './runtime/did.js'
 import { calls as TransactionWeightApiCalls } from './runtime/weight.js'
+import { calls as EntriesApiCalls } from './runtime/entries.js'
 
 import { cordSignedExtensions } from './signedExtensions/index.js'
 
 export { cordSignedExtensions } from './signedExtensions/index.js'
 export { calls as didApiCalls } from './runtime/did.js'
 export { calls as TransactionWeightApiCalls } from './runtime/weight.js'
+export { calls as EntriesApiCalls } from './runtime/entries.js'
 
 export { types7, types8, types9 as types }
 
@@ -41,6 +43,7 @@ const sharedBundle: OverrideBundleDefinition = {
   runtime: {
     ...didApiCalls,
     ...TransactionWeightApiCalls,
+    ...EntriesApiCalls,
   },
 }
 

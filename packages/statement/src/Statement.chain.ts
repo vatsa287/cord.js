@@ -69,6 +69,7 @@ import type { PalletStatementStatementDetails } from '@cord.network/augment-api'
 import { DecoderUtils, SDKErrors } from '@cord.network/utils'
 import { Chain } from '@cord.network/network'
 import { blake2AsHex, H256 } from '@cord.network/types'
+import { sign } from 'crypto'
 
 /**
  * Checks if a statement is stored on the CORD blockchain.

@@ -953,12 +953,6 @@ declare module '@polkadot/api-base/types/events' {
        **/
       Stored: AugmentedEvent<ApiType, [sender: AccountId32, contentHash: H256], { sender: AccountId32, contentHash: H256 }>;
     };
-    rootTesting: {
-      /**
-       * Event dispatched when the trigger_defensive extrinsic is called.
-       **/
-      DefensiveTestCall: AugmentedEvent<ApiType, []>;
-    };
     scheduler: {
       /**
        * The call for the provided hash was not found so the task has been aborted.

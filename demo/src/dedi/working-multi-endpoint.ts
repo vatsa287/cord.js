@@ -149,21 +149,6 @@ async function waitUntilZeroPendingTransactions() {
   }
 }
 
-// async function connectAndGetApis(networkAddresses: string[]) {
-//   let originalConsoleLog = console.log;
-//   console.log = () => {};
-//   const apis = await Promise.all(
-//     networkAddresses.map(async (address) => {
-//       await Cord.connect(address);
-//       return Cord.ConfigService.get("api");
-//     })
-//   );
-
-//   console.log = originalConsoleLog;
-
-//   return apis;
-// }
-
 async function main() {
   try {
     // const networkAddress1 = 'wss://weave1.testnet.cord.network';
@@ -187,27 +172,11 @@ async function main() {
     // Step 1: Setup Membership
     // Setup transaction author account - CORD Account.
     log(`\n❄️  New Network Member`)
-    // Weave testnet
-    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x7dec09818346e4ce15fba110fc5855445a9a20ff163b408d98fcf42ae5759a89//1',
-    //   'sr25519'
-    // )
-    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
-    //   'sr25519'
-    // )
-
     // Mac local
     const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x8a53a34c8198440e36b5c54097e07b0b2e485d1c9e0e7d9f700bb281085173e1//1',
+      process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
       'sr25519'
     )
-
-    // ssh local
-    // const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-    //   process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x5ec335b5f17329bcb6501f13c0bfed56d948628ff9cbcabdc9e6a8e192961fa5//1',
-    //   'sr25519'
-    // )
 
     // Setup network member account 1.
     const { account: authorIdentity1 } = await createAccount()
@@ -387,7 +356,7 @@ async function main() {
 
     /* (10_000 * 1_00_000) = 1 Billion in batches of 10_000 */
     let maxOuterBatches = 1; 
-    let txCount = 1_00_000;
+    let txCount = 10_000;
     let perBatch = 10;
 
     let outerBatchStartTime = moment();

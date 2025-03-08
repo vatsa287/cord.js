@@ -10,7 +10,7 @@ import BN from 'bn.js';
 async function main() {
   const networkAddress = process.env.NETWORK_ADDRESS
     ? process.env.NETWORK_ADDRESS
-    : 'ws://127.0.0.1:9944'
+    : 'wss://sparknet.cord.network'
 
   Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
   await Cord.connect(networkAddress)
@@ -28,7 +28,7 @@ async function main() {
   // Setup transaction author account - CORD Account.
   console.log(`\n❄️  New Network Member`)
   const authorityAuthorIdentity = Cord.Utils.Crypto.makeKeypairFromUri(
-    process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '//Alice',
+    process.env.ANCHOR_URI ? process.env.ANCHOR_URI : '0x84a124dd3b53d93ebedd8de79025cf19546db67c9bdaa55d983ca548b03bbe3c//1',
     'sr25519'
   )
   // Setup network authority account.
