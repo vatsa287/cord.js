@@ -1,7 +1,7 @@
 {
-  "name": "@cord.network/statement",
+  "name": "@cord.network/statement-did",
   "version": "0.9.3-1rc4",
-  "description": "CORD Statements",
+  "description": "CORD Statements with DID based ops.",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
   "types": "./lib/cjs/index.d.ts",
